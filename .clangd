@@ -1,0 +1,22 @@
+CompileFlags:
+  CompilationDatabase: .lsp/spin_agent/
+  Add:
+    - -DSSIZE_MAX
+    - -DLWIP_NO_UNISTD_H=1
+    - -Dssize_t=long
+    - -D_SSIZE_T_DECLARED
+    - -Wno-unknown-warning-option
+  Remove:
+    - -mlong-calls
+    - -fno-tree-switch-conversion
+    - -mtext-section-literals
+    - -mlongcalls
+    - -fstrict-volatile-bitfields
+    - -free
+    - -fipa-pta
+    - -march=*
+    - -mabi=*
+    - -mcpu=*
+Diagnostics:
+  Suppress:
+    - "attribute_section_invalid_for_target" # Happens reliably on #include <Arduino.h> on apple silicon
