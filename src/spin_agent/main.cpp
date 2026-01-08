@@ -1,5 +1,7 @@
-#include <Arduino.h>
 #include <HX711-multi.h>
+
+#include "Hx711MultiAdapter.h"
+#include "QuadCellScale.h"
 
 // constexpr byte sharedClockPin = D5;
 constexpr byte sharedClockPin = 10;
@@ -9,25 +11,23 @@ long results[scaleCount];
 double weights[scaleCount];
 float factors[scaleCount] = {4000.0, 4000.0, 4000.0, 4000.0};
 
-HX711MULTI scales(scaleCount, dataPins, sharedClockPin);
+auto multi = std::make_unique<HX711MULTI>(scaleCount, dataPins, sharedClockPin);
+auto adapter = std::make_unique<Hx711MultiAdapter>(std::move(multi));
+QuadCellScale scales(std::move(adapter));
 
-void tare_scales() {
+void tareScales() {
   Serial.print("Taring scales");
-  bool success = false;
-  auto start = millis();
-  while (!success && millis() < (start + 4000)) {
-    success = scales.tare(20, 10000);
-    Serial.print(".");
-  }
-
+  scales.tare();
   Serial.println(" done.");
 }
 
 void setup() {
   Serial.begin(9600);
   Serial.println("HX711 multi demo");
-  tare_scales();
-  scales.set_scales(factors);
+  tareScales();
+  for (int i = 0; i < scaleCount; i++) {
+    scales.setCalibrationFactor(i, 6000.0);
+  }
 }
 
 void printWeights() {
@@ -45,12 +45,12 @@ void loop() {
   if (Serial.available()) {
     char cmd = Serial.read();
     if (cmd == 't') {
-      tare_scales();
+      tareScales();
     }
   }
 
-  scales.get_units(weights);
-  printWeights();
+  // scales.getUnits(weights);
+  // printWeights();
 
   end = millis();
   Serial.printf(" | Loop took %10u ms\r", (unsigned int)(end - start));
